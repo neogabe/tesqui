@@ -64,7 +64,28 @@ const registerUser = async (req, res) => {
 //@access Public
 const loginUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "Credenciais inválidas" });
+    }
+
+    // Comparar as senhas
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Credenciais inválidas" });
+    }
+
+    // Retornar usuário com token JWT
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      profileImageUrl: user.profileImageUrl,
+      role: user.role,
+      token: generateToken(user._id),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -75,6 +96,11 @@ const loginUser = async (req, res) => {
 //@access Private (Precisa do token de autenticação (JWT))
 const getUserProfile = async (req, res) => {
   try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -85,6 +111,30 @@ const getUserProfile = async (req, res) => {
 //@access Private (Precisa do token de autenticação (JWT))
 const updateUserProfile = async (req, res) => {
   try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    // Atualiza o nome e email
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+
+    // Se a senha for passada, atualiza
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      token: generateToken(updatedUser._id),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
