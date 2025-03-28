@@ -27,4 +27,4 @@ const getUserProfile = async (req, res) => {};
 //@access Private (Precisa do token de autenticação (JWT))
 const updateUserProfile = async (req, res) => {};
 
-modile.exports = 	{ registerUser, loginUser, getUserProfile, updateUserProfile };
+module.exports = 	{ registerUser, loginUser, getUserProfile, updateUserProfile };
