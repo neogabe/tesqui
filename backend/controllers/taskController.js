@@ -134,6 +134,28 @@ const createTask = async (req, res) => {
 //@access Private
 const updateTask = async (req, res) => {
   try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) return res.status(404).json({ message: "Tarefa não encontrada" });
+
+    task.title = req.body.title || task.title;
+    task.description = req.body.description || task.description;
+    task.priority = req.body.priority || task.priority;
+    task.dueDate = req.body.dueDate || task.dueDate;
+    task.attachments = req.body.attachments || task.attachments;
+    task.todoChecklist = req.body.todoChecklist || task.todoChecklist;
+
+    if (req.body.assignedTo) {
+      if (!Array.isArray(req.body.assignedTo)) {
+        return res.status(400).json({ message: "assignedTo precisa ser um array de IDs" });
+      }
+
+      task.assignedTo = req.body.assignedTo;
+    }
+
+    const updatedTask = await task.save();
+
+    res.status(200).json({ message: "Tarefa atualizada com sucesso", updatedTask });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
