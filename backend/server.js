@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
-const { authRoutes, userRoutes } = require('./routes');
+const { authRoutes, userRoutes, taskRoutes } = require('./routes');
 require('dotenv').config();
 
 const app = express();
@@ -23,7 +23,7 @@ app.use(express.json());
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-// app.use('/api/auth', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 // app.use('/api/auth', reportRoutes);
 
 // Inicia o servidor
